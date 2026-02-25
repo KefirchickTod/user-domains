@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Local dev Docker
+docker/mysql
+docker/nginx
+docker/php
+docker-compose.yml
+Dockerfile
+
+# Dependencies (installed during build)
+/vendor
+/node_modules
+
+# Frontend build artifacts
+/public/build
+/public/hot
+
+# Laravel cache (rebuilt during deploy)
+/bootstrap/cache/*.php
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
+/storage/logs
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Tests
+/tests
+
+# IDE / OS
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Docs
+*.md
