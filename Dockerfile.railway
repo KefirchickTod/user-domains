@@ -51,7 +51,16 @@ WORKDIR /var/www
 # Copy application
 COPY . .
 
+# Create directories that are gitignored but required by Laravel
+RUN mkdir -p \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/logs \
+    bootstrap/cache
+
 # Install dependencies (production only)
+ENV COMPOSER_MEMORY_LIMIT=-1
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 # Permissions
