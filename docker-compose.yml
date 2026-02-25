@@ -1,0 +1,80 @@
+services:
+    user-domains-nginx:
+        image: nginx:1.27-alpine
+        container_name: user-domains-nginx
+        restart: always
+        ports:
+            - "8004:80"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+        depends_on:
+            - user-domains-app
+        networks:
+            - user-domains-network
+
+    user-domains-mysql:
+        container_name: user-domains-mysql
+        image: mysql:8.0
+        ports:
+            - "3308:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: 'root'
+            MYSQL_PASSWORD: 'secret'
+            MYSQL_DATABASE: 'user_domains'
+            MYSQL_USER: 'user_domains'
+            MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "--user=user_domains", "--password=secret", "--host=localhost", "ping", "-s"]
+            interval: 5s
+            timeout: 10s
+            retries: 10
+        volumes:
+            - user-domains-mysql-data:/var/lib/mysql
+            - ./docker/mysql/init:/docker-entrypoint-initdb.d
+        networks:
+            - user-domains-network
+
+    user-domains-app:
+        container_name: user-domains-app
+        build:
+            context: ./
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP:-1000}'
+                WWWUSER: '${WWWUSER:-1000}'
+        restart: unless-stopped
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+            - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+            - ./docker/php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+            - /tmp/xdebug:/tmp/xdebug
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        depends_on:
+            user-domains-mysql:
+                condition: service_healthy
+        networks:
+            - user-domains-network
+
+    user-domains-redis:
+        container_name: user-domains-redis
+        image: redis:7-alpine
+        restart: unless-stopped
+        ports:
+            - "6381:6379"
+        volumes:
+            - user-domains-redis-data:/data
+        networks:
+            - user-domains-network
+
+networks:
+    user-domains-network:
+        driver: bridge
+
+volumes:
+    user-domains-mysql-data:
+        driver: local
+    user-domains-redis-data:
+        driver: local
