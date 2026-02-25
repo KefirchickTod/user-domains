@@ -42,9 +42,9 @@ RUN { \
     echo 'opcache.fast_shutdown=1'; \
 } > /usr/local/etc/php/conf.d/opcache.ini
 
-# Composer
+# Composer (installed via official script — avoids extra image pull)
 ENV COMPOSER_ALLOW_SUPERUSER=1
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /var/www
 
